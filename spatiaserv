@@ -1,0 +1,143 @@
+#!/usr/bin/perl -w
+
+use strict;
+use Mojolicious::Lite;
+use URI;
+use DBI;
+use JSON;
+use Carp;
+use Encode;
+use POSIX;
+use Scalar::Util;
+use Data::Dumper;
+
+my $dbdir=".";
+
+# FiDB Middleware - Translate API Calls from network to database
+# On update of documents add entry to changes containing REMOTE_USER and date/time
+#
+# list 
+# 	List all databases available
+# 	
+# meta/database
+# 	Retrieve meta json
+#
+# bbox/database/layer/x1/y1/x2/y2
+#
+# dummy
+# 	Service valid and empty js
+#
+
+get '/dummy' => sub {
+	my $self = shift;
+	$self->render( json => {} );
+};
+
+get '/list' => sub {
+	my $self = shift;
+	opendir(my $dh, $dbdir) || die "Can't opendir $dbdir $!";
+	my @files = map { s/\.sqlite$//; $_; }
+		grep { /.sqlite$/ && -f "$dbdir/$_" } readdir($dh);
+	closedir $dh;
+	
+	$self->res->headers->header('Access-Control-Allow-Origin' => '*');
+	$self->render( json => \@files );
+};
+
+sub db_open {
+	my ($dbname) = @_;
+
+	$dbname =~ s/[\.\/]+//g;
+
+	# Need to stat the file - else fail
+
+	my $dbconfig=sprintf('dbi:SQLite:dbname=%s/%s.sqlite', $dbdir, $dbname);
+	my $dbh = DBI->connect($dbconfig, "", "");
+
+	$dbh->sqlite_load_extension("mod_spatialite");
+
+	return $dbh;
+}
+
+sub db_meta_get {
+	my ($dbh) = @_;
+
+	my $sql=$dbh->prepare("select * from meta limit 1");
+	$sql->execute();
+	my $row=$sql->fetchrow_hashref();
+
+	return from_json($row->{config});
+}
+
+get '/meta/:dbname' => sub {
+	my $self = shift;
+	my $dbh=db_open($self->param("dbname"));
+
+
+	$self->res->headers->header('Access-Control-Allow-Origin' => '*');
+	$self->render( json => db_meta_get($dbh));
+};
+
+
+sub row_to_geojson_feature {
+	my ($layer, $row) = @_;
+
+	my $geojson=from_json($row->{geojson});
+
+	my $new={ "geometry" => $geojson, "type" => "Feature" };
+
+	foreach my $column ( @{$layer->{columns}} ) {
+		$new->{properties}{$column}=$row->{$column};
+	}
+
+	return $new;
+}
+
+get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2' => sub {
+	my $self = shift;
+	my $dbh=db_open($self->param("dbname"));
+	my $meta=db_meta_get($dbh);
+
+	my $layername=$self->param("layer");
+
+	if (!defined($meta->{layer}{$layername})) {
+		$self->render(status => 404);
+		return;
+	}
+
+	my $layer=$meta->{layer}{$layername};
+	my $columns=join(",", @{$layer->{columns}});
+
+	my $sqlstring=sprintf(
+			"select	AsGeoJSON(%s) geojson,
+				%s
+			from	%s
+			where	ST_Intersects(%s, BuildMbr(?,?,?,?,4326))
+			limit	500",
+			$layer->{geometry}, $columns, $layername, $layer->{geometry});
+
+	my $sql=$dbh->prepare($sqlstring) || die $DBI::errstr;
+
+	# BuildMbr 	BuildMbr( x1 Double precision , y1 Double precision ,
+	#            x2 Double precision , y2 Double precision [ , SRID Integer] ) : Geometry 	
+	#
+	#  base 	[x1 y1] and [x2 y2] are assumed to be Points identifying a line segment;
+	#  then a Geometry will be returned representing the MBR for this line segment
+	#
+	$sql->execute(
+		sprintf("%f", $self->param("x1")),
+		sprintf("%f", $self->param("y1")),
+		sprintf("%f", $self->param("x2")),
+		sprintf("%f", $self->param("y2")));
+
+	my @res;
+	while(my $row=$sql->fetchrow_hashref()) {
+		push @res, row_to_geojson_feature($layer, $row);
+	}
+
+	$self->res->headers->header('Access-Control-Allow-Origin' => '*');
+	$self->render( json => { type => "FeatureCollection", features => \@res });
+};
+
+app->start;
+

@@ -1,0 +1,12 @@
+drop table meta;
+create table meta ( config json );
+insert into meta ( config ) values ( json('{
+	"layer": {
+		"wayareaconflict": {
+			"geometry":	"geometry",
+			"srid":		"4326",
+			"columns":	[ "lineway_id", "lineway_type", "lineway_changeset",
+					"areaway_id", "areaway_type", "areaway_changeset" ]
+		}
+	}
+}'));
