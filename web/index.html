@@ -10,7 +10,9 @@
 
 	<script src="leaflet.js"></script>
 	<script src="leaflet.ajax.min.js"></script>
-	<script src="http://localhost:3000/dummy"></script>
+	<script src="leaflet.permalink.min.js"></script>
+	<script src="handlebars-v4.0.11.js"></script>
+	<script src="jquery-3.3.1.min.js"></script>
 
 	<style>
 		body { padding: 0; margin 0; }
@@ -22,50 +24,65 @@
 	<div id="mapid"</div>
 	<script>
 
-var map=L.map('mapid');
+var db="db-wayareaconflict";
+var layer="wayareaconflict";
 
-var geojsonLayer = L.geoJson.ajax("");
+function geoJsonIter(feat, layer) {
+    var out = [];
+    if (f.properties){
+        for(key in f.properties){
+            out.push(key+": "+f.properties[key]);
+        }
+        l.bindPopup(out.join("<br />"));
+    }
+}
 
-function refreshoverlay() {
+function refreshoverlay(map, geojsonLayer) {
 	var bbox=map.getBounds();
 
-  var url="http://localhost:3000/bbox/db-wayareaconflict/wayareaconflict/" 
+  var url="/spatialite-rest/bbox/"
+		+ db + "/"
+		+ layer + "/"
 		+ bbox.getWest() + "/" 
 		+ bbox.getNorth() + "/"
 		+ bbox.getEast() + "/"
 		+ bbox.getSouth();
 
-  geojsonLayer.refresh(url);//add a new layer replacing whatever is there
-
-	console.log("Refreshoverlay");
-	console.log(map.getBounds());
-	console.log(url);
+  geojsonLayer.refresh(url);
 }
 
-		var colourlayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-			maxZoom: 18,
-			attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
-			id: 'colour'
-		}).addTo(map);
+var map=L.map('mapid');
+var geojsonLayer = L.geoJson.ajax("", { onEachFeature: geoJsonIter });
 
-		var bwlayer=L.tileLayer('http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
-			maxZoom: 18,
-			attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
-			id: 'greyscale'
-		});
+var colourlayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	maxZoom: 18,
+	attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+	id: 'colour'
+}).addTo(map);
 
-		L.control.scale({ imperial: false }).addTo(map);
+var bwlayer=L.tileLayer('http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
+	maxZoom: 18,
+	attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+	id: 'greyscale'
+});
 
-		map.setView([51.917397,8.3930408], 16);
+L.control.scale({ imperial: false }).addTo(map);
 
-		L.control.layers(
-					{
-							"OpenStreetmap": colourlayer,
-							"Greyscale": bwlayer
-					},{ "Overlay": geojsonLayer }).addTo(map);
 
-		map.on('zoomend', refreshoverlay);
-		map.on('dragend', refreshoverlay);
+L.control.layers(
+			{
+					"OpenStreetmap": colourlayer,
+					"Greyscale": bwlayer
+			},{}).addTo(map);
+
+map.addLayer(geojsonLayer);
+
+map.on('zoomend', function() { refreshoverlay(map, geojsonLayer); });
+map.on('dragend', function() { refreshoverlay(map, geojsonLayer); });
+
+var mappos = L.Permalink.getMapLocation(16, [51.917397,8.3930408]);
+map.setView(mappos.center, mappos.zoom);
+L.Permalink.setup(map);
 
 	</script>
 </body>
