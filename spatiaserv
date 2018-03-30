@@ -78,7 +78,6 @@ get '/meta/:dbname' => sub {
 	$self->render( json => db_meta_get($dbh));
 };
 
-
 sub row_to_geojson_feature {
 	my ($layer, $row) = @_;
 
@@ -86,7 +85,10 @@ sub row_to_geojson_feature {
 
 	my $new={ "geometry" => $geojson, "type" => "Feature" };
 
-	foreach my $column ( @{$layer->{columns}} ) {
+	# Copy all columns except the geometry to the feature properties
+	my @keys=grep { !/geometry/ } keys %{$row};
+
+	foreach my $column ( @keys ) {
 		$new->{properties}{$column}=$row->{$column};
 	}
 
@@ -110,11 +112,16 @@ get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2' => sub {
 
 	my $sqlstring=sprintf(
 			"select	AsGeoJSON(%s) geojson,
+				MbrMinX(Buffer(%s, 0.0005)) xmin,
+				MbrMaxX(Buffer(%s, 0.0005)) xmax,
+				MbrMinY(Buffer(%s, 0.0005)) ymin,
+				MbrMaxY(Buffer(%s, 0.0005)) ymax,
 				%s
 			from	%s
 			where	ST_Intersects(%s, BuildMbr(?,?,?,?,4326))
 			limit	500",
-			$layer->{geometry}, $columns, $layername, $layer->{geometry});
+			$layer->{geometry}, $layer->{geometry}, $layer->{geometry},
+			$layer->{geometry}, $layer->{geometry}, $columns, $layername, $layer->{geometry});
 
 	my $sql=$dbh->prepare($sqlstring) || die $DBI::errstr;
 
