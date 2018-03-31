@@ -22,15 +22,26 @@
 
 <body>
 	<div id="mapid"</div>
+
+	<script id="remotecontrol-template" type="text/x-handlebars-template">
+    <a href="#" onclick="remotecontrol({{ xmin }}, {{ xmax }}, {{ ymin }}, {{ ymax }}, {{ wayselect }})">Edit remote control</a>
+	</script>
+
 	<script>
 
 var db="db-wayareaconflict";
 var layername="wayareaconflict";
 var meta;
 
-function remotecontrol(xmin, xmax, ymin, ymax) {
+function remotecontrol(xmin, xmax, ymin, ymax, wayselect) {
+	var addon="";
+
+	if (wayselect != undefined) {
+		addon=addon + "&select=way" + wayselect;
+	}
+
 	$.ajax({
-		url: "http://localhost:8111/load_and_zoom?left=" + xmin + "&right=" + xmax + "&top=" + ymax + "&bottom=" + ymin
+		url: "http://localhost:8111/load_and_zoom?left=" + xmin + "&right=" + xmax + "&top=" + ymax + "&bottom=" + ymin + addon
 	}).done(function(json) {
 	});
 }
@@ -98,7 +109,7 @@ var mappos = L.Permalink.getMapLocation(16, [51.917397,8.3930408]);
 map.setView(mappos.center, mappos.zoom);
 L.Permalink.setup(map);
 
-Handlebars.registerPartial("remotecontrol", "<a href=\"#\" onclick=\"remotecontrol({{ xmin }}, {{ xmax }}, {{ ymin }}, {{ ymax }})\">Edit remote control</a>");
+Handlebars.registerPartial("remotecontrol", document.getElementById("remotecontrol-template").innerHTML);
 
 	</script>
 </body>
