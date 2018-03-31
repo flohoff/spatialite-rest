@@ -44,6 +44,7 @@ get '/list' => sub {
 	$self->render( json => \@files );
 };
 
+
 sub db_open {
 	my ($dbname) = @_;
 
@@ -107,6 +108,7 @@ get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2' => sub {
 		return;
 	}
 
+
 	my $layer=$meta->{layer}{$layername};
 	my $columns=join(",", @{$layer->{columns}});
 
@@ -118,12 +120,19 @@ get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2' => sub {
 				MbrMaxY(Buffer(%s, 0.0005)) ymax,
 				%s
 			from	%s
-			where	ST_Intersects(%s, BuildMbr(?,?,?,?,4326))
-			limit	500",
+			where	ST_Intersects(%s, BuildMbr(%s,%s,%s,%s,4326))
+			limit	2000",
 			$layer->{geometry}, $layer->{geometry}, $layer->{geometry},
-			$layer->{geometry}, $layer->{geometry}, $columns, $layername, $layer->{geometry});
+			$layer->{geometry}, $layer->{geometry}, $columns, $layername, $layer->{geometry},
+ 			sprintf("%f", $self->param("x1")),
+			sprintf("%f", $self->param("y1")),
+			sprintf("%f", $self->param("x2")),
+			sprintf("%f", $self->param("y2"))
+		);
 
 	my $sql=$dbh->prepare($sqlstring) || die $DBI::errstr;
+
+	print STDERR $sqlstring . "\n";
 
 	# BuildMbr 	BuildMbr( x1 Double precision , y1 Double precision ,
 	#            x2 Double precision , y2 Double precision [ , SRID Integer] ) : Geometry 	
@@ -131,11 +140,8 @@ get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2' => sub {
 	#  base 	[x1 y1] and [x2 y2] are assumed to be Points identifying a line segment;
 	#  then a Geometry will be returned representing the MBR for this line segment
 	#
-	$sql->execute(
-		sprintf("%f", $self->param("x1")),
-		sprintf("%f", $self->param("y1")),
-		sprintf("%f", $self->param("x2")),
-		sprintf("%f", $self->param("y2")));
+
+	$sql->execute();
 
 	my @res;
 	while(my $row=$sql->fetchrow_hashref()) {
