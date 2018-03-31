@@ -32,6 +32,7 @@
 var db="db-wayareaconflict";
 var layername="wayareaconflict";
 var meta;
+var metalayer;
 
 function remotecontrol(xmin, xmax, ymin, ymax, wayselect) {
 	var addon="";
@@ -46,10 +47,19 @@ function remotecontrol(xmin, xmax, ymin, ymax, wayselect) {
 	});
 }
 
+function geoJsonStyle(feature) {
+
+  if (metalayer.styles != undefined && metalayer.styles.default != undefined) {
+		return metalayer.styles.default;
+	}
+
+	return;
+}
+
 // Use the Handlebars compiled popupTemplate to create the popup text
 function geoJsonIter(feat, layer) {
 	  feat.properties.remotecontrol="<a href=\"#\" onclick=\"remotecontrol(this)\">Edit remote control</a>";
-	  layer.bindPopup(meta.layer[layername].popupTemplate(feat.properties));
+	  layer.bindPopup(metalayer.popupTemplate(feat.properties));
 }
 
 function refreshoverlay(map, geojsonLayer) {
@@ -70,10 +80,13 @@ function geojsonLayerInit(map, db, layername) {
 	$.ajax({
 		url: "/spatialite-rest/meta/" + db
 	}).done(function(json) {
-		meta=json;
-		meta.layer[layername].popupTemplate=Handlebars.compile(meta.layer[layername].popup);
 
-    geojsonLayer = L.geoJson.ajax("", { onEachFeature: geoJsonIter });
+		meta=json;
+		metalayer=meta.layer[layername];
+
+		metalayer.popupTemplate=Handlebars.compile(metalayer.popup);
+
+    geojsonLayer = L.geoJson.ajax("", { onEachFeature: geoJsonIter, style: geoJsonStyle });
     map.addLayer(geojsonLayer);
 
     map.on('zoomend', function() { refreshoverlay(map, geojsonLayer); });
