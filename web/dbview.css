@@ -1,0 +1,16 @@
+body {
+	padding: 0;
+	margin 0;
+}
+body, html {
+	height: 100%;
+	width: 100%;
+}
+#head {
+	height: 10%;
+	width: 98%;
+}
+#map {
+	height: 90%;
+	width: 98%;
+}

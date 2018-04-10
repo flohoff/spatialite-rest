@@ -7,123 +7,35 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<link type="text/css" rel="stylesheet" href="leaflet.css">
+	<link type="text/css" rel="stylesheet" href="dbview.css">
 
 	<script src="leaflet.js"></script>
 	<script src="leaflet.ajax.min.js"></script>
 	<script src="leaflet.permalink.min.js"></script>
 	<script src="handlebars-v4.0.11.js"></script>
 	<script src="jquery-3.3.1.min.js"></script>
-
-	<style>
-		body { padding: 0; margin 0; }
-		html, body, #mapid { height: 100%;, width: 100%; }
-	</style>
+	<script src="url.min.js"></script>
+	<script src="dbview.js"></script>
 </head>
 
 <body>
-	<div id="mapid"</div>
+	<div id="head"><h2>test</h2></div>
+	<div id="map"></div>
 
 	<script id="remotecontrol-template" type="text/x-handlebars-template">
     <a href="#" onclick="remotecontrol({{ xmin }}, {{ xmax }}, {{ ymin }}, {{ ymax }}, {{ wayselect }})">Edit remote control</a>
 	</script>
 
+	<script id="head-template" type="text/x-handlebars-template">
+		<div style="font-size: 1.2em;">
+		Database: {{ view.dbname }} Layer: {{ view.layername }}<br>
+		Data: {{ view.meta.time.data }} Processed {{ view.meta.time.process }}<br>
+		Features loaded: {{ view.featuresloaded }}
+		</div>
+	</script>
+
 	<script>
-
-var db="db-wayareaconflict";
-var layername="wayareaconflict";
-var meta;
-var metalayer;
-
-function remotecontrol(xmin, xmax, ymin, ymax, wayselect) {
-	var addon="";
-
-	if (wayselect != undefined) {
-		addon=addon + "&select=way" + wayselect;
-	}
-
-	$.ajax({
-		url: "http://localhost:8111/load_and_zoom?left=" + xmin + "&right=" + xmax + "&top=" + ymax + "&bottom=" + ymin + addon
-	}).done(function(json) {
-	});
-}
-
-function geoJsonStyle(feature) {
-
-  if (metalayer.styles != undefined && metalayer.styles.default != undefined) {
-		return metalayer.styles.default;
-	}
-
-	return;
-}
-
-// Use the Handlebars compiled popupTemplate to create the popup text
-function geoJsonIter(feat, layer) {
-	  feat.properties.remotecontrol="<a href=\"#\" onclick=\"remotecontrol(this)\">Edit remote control</a>";
-	  layer.bindPopup(metalayer.popupTemplate(feat.properties));
-}
-
-function refreshoverlay(map, geojsonLayer) {
-	var bbox=map.getBounds();
-
-  var url="/spatialite-rest/bbox/"
-		+ db + "/"
-		+ layername + "/"
-		+ bbox.getWest() + "/" 
-		+ bbox.getNorth() + "/"
-		+ bbox.getEast() + "/"
-		+ bbox.getSouth();
-
-  geojsonLayer.refresh(url);
-}
-
-function geojsonLayerInit(map, db, layername) {
-	$.ajax({
-		url: "/spatialite-rest/meta/" + db
-	}).done(function(json) {
-
-		meta=json;
-		metalayer=meta.layer[layername];
-
-		metalayer.popupTemplate=Handlebars.compile(metalayer.popup);
-
-    geojsonLayer = L.geoJson.ajax("", { onEachFeature: geoJsonIter, style: geoJsonStyle });
-    map.addLayer(geojsonLayer);
-
-    map.on('zoomend', function() { refreshoverlay(map, geojsonLayer); });
-    map.on('dragend', function() { refreshoverlay(map, geojsonLayer); });
-
-		refreshoverlay(map, geojsonLayer);
-	});
-}
-
-var map=L.map('mapid');
-
-var colourlayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-	maxZoom: 18,
-	attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
-	id: 'colour'
-}).addTo(map);
-
-var bwlayer=L.tileLayer('http://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
-	maxZoom: 18,
-	attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
-	id: 'greyscale'
-});
-
-L.control.scale({ imperial: false }).addTo(map);
-L.control.layers({
-					"OpenStreetmap": colourlayer,
-					"Greyscale": bwlayer
-			},{}).addTo(map);
-
-geojsonLayerInit(map, "db-wayareaconflict", "wayareaconflict");
-
-var mappos = L.Permalink.getMapLocation(16, [51.917397,8.3930408]);
-map.setView(mappos.center, mappos.zoom);
-L.Permalink.setup(map);
-
-Handlebars.registerPartial("remotecontrol", document.getElementById("remotecontrol-template").innerHTML);
-
+		mapinit();
 	</script>
 </body>
 </html>
