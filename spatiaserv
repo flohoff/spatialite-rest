@@ -11,7 +11,7 @@ use POSIX;
 use Scalar::Util;
 use Data::Dumper;
 
-my $dbdir=".";
+my $dbdir="/var/www/osm.zz.de/spatialite-rest/";
 
 # FiDB Middleware - Translate API Calls from network to database
 # On update of documents add entry to changes containing REMOTE_USER and date/time
@@ -108,7 +108,6 @@ get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2' => sub {
 		return;
 	}
 
-
 	my $layer=$meta->{layer}{$layername};
 	my $columns=join(",", @{$layer->{columns}});
 
@@ -132,7 +131,7 @@ get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2' => sub {
 
 	my $sql=$dbh->prepare($sqlstring) || die $DBI::errstr;
 
-	print STDERR $sqlstring . "\n";
+	#print STDERR $sqlstring . "\n";
 
 	# BuildMbr 	BuildMbr( x1 Double precision , y1 Double precision ,
 	#            x2 Double precision , y2 Double precision [ , SRID Integer] ) : Geometry 	
@@ -149,7 +148,7 @@ get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2' => sub {
 	}
 
 	$self->res->headers->header('Access-Control-Allow-Origin' => '*');
-	$self->render( json => { type => "FeatureCollection", features => \@res });
+	$self->render( json => { type => "FeatureCollection", features => \@res, properties => { meta => $meta } });
 };
 
 app->start;
