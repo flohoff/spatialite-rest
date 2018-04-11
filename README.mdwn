@@ -1,4 +1,7 @@
 
+Todo / Ideas
+============
+
 - Visualize the BBOX/extent/ConvexHull of the layer
   - Make this toggleable?
 - Only send date/time in bbox request not full meta
