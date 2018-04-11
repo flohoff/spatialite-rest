@@ -11,6 +11,7 @@ use Encode;
 use POSIX;
 use Scalar::Util;
 use Data::Dumper;
+use Hash::Flatten qw/unflatten/;
 
 my $dbdir="$Bin/databases";
 
@@ -61,20 +62,25 @@ sub db_open {
 	return $dbh;
 }
 
+# Read the meta table and unflatten to a datastructure
 sub db_meta_get {
 	my ($dbh) = @_;
 
-	my $sql=$dbh->prepare("select * from meta limit 1");
+	my $sql=$dbh->prepare("select key,value from meta");
 	$sql->execute();
-	my $row=$sql->fetchrow_hashref();
+	my $rows=$sql->fetchall_arrayref();
 
-	return from_json($row->{config});
+	my $meta;
+	foreach my $row ( @{$rows} ) {
+		$meta->{$row->[0]}=$row->[1];
+	}
+
+	return unflatten($meta);
 }
 
 get '/meta/:dbname' => sub {
 	my $self = shift;
 	my $dbh=db_open($self->param("dbname"));
-
 
 	$self->res->headers->header('Access-Control-Allow-Origin' => '*');
 	$self->render( json => db_meta_get($dbh));
@@ -105,7 +111,7 @@ get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2' => sub {
 	my $layername=$self->param("layer");
 
 	if (!defined($meta->{layer}{$layername})) {
-		$self->render(status => 404);
+		$self->render(status => 404, text => "Layer not found");
 		return;
 	}
 
@@ -122,8 +128,8 @@ get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2' => sub {
 			from	%s
 			where	ST_Intersects(%s, BuildMbr(%s,%s,%s,%s,4326))
 			limit	2000",
-			$layer->{geometry}, $layer->{geometry}, $layer->{geometry},
-			$layer->{geometry}, $layer->{geometry}, $columns, $layername, $layer->{geometry},
+			$layer->{geometrycolumn}, $layer->{geometrycolumn}, $layer->{geometrycolumn},
+			$layer->{geometrycolumn}, $layer->{geometrycolumn}, $columns, $layername, $layer->{geometrycolumn},
  			sprintf("%f", $self->param("x1")),
 			sprintf("%f", $self->param("y1")),
 			sprintf("%f", $self->param("x2")),
