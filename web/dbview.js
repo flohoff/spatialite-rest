@@ -65,6 +65,10 @@ function geojsonLayerInit(map, dbname, layername) {
 		view.meta=json;
 		view.layer=view.meta.layer[view.layername];
 
+		if (view.layer.shortdescription) {
+			document.title = view.layer.shortdescription;
+		}
+
 		if (view.layer && view.layer.popup) {
 			try {
 				view.template.popup=Handlebars.compile(view.layer.popup);
