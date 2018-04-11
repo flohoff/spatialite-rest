@@ -6,12 +6,13 @@ use URI;
 use DBI;
 use JSON;
 use Carp;
+use FindBin qw($Bin);
 use Encode;
 use POSIX;
 use Scalar::Util;
 use Data::Dumper;
 
-my $dbdir="/var/www/osm.zz.de/spatialite-rest/";
+my $dbdir="$Bin/databases";
 
 # FiDB Middleware - Translate API Calls from network to database
 # On update of documents add entry to changes containing REMOTE_USER and date/time
