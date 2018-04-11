@@ -1,7 +1,21 @@
 
 - Visualize the BBOX/extent/ConvexHull of the layer
+  - Make this toggleable?
+- Only send date/time in bbox request not full meta
+  - If data/process time changes reinit/reload layer/meta
+    so that if style etc has changed we will switch
+- Possibility to send feature limit to backend
+- Show if feature limit has been reached
+- Zoom limit from layer config e.g. if on to high zoom level dont issue bbox
+  but delete layer - Show a statement to zoom in
+- Load signalling somewhere 
+- File serve url route
+- Display long description of layer processing (iframe popover with
+  file from database?)
+- Possibility to address style by a database column
+- Slide in on left with a list of layers
+- Fix remote control link deleting position "#" anchor
 - When no position is given jump to the layer defined center
-
 
 Installation
 ============
