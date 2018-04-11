@@ -27,10 +27,14 @@
 	</script>
 
 	<script id="head-template" type="text/x-handlebars-template">
-		<div style="font-size: 1.2em;">
+		<div style="float: left">
+		<h3>{{ view.layer.shortdescription }}</h3>
+		</div>
+		<div style="float: right">
 		Database: {{ view.dbname }} Layer: {{ view.layername }}<br>
 		Data: {{ view.meta.time.data }} Processed {{ view.meta.time.process }}<br>
 		Features loaded: {{ view.featuresloaded }}
+		</div>
 		</div>
 	</script>
 
