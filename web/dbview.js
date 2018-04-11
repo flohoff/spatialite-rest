@@ -64,7 +64,14 @@ function geojsonLayerInit(map, dbname, layername) {
 	}).done(function(json) {
 		view.meta=json;
 		view.layer=view.meta.layer[view.layername];
-		view.template.popup=Handlebars.compile(view.layer.popup);
+
+		if (view.layer && view.layer.popup) {
+			try {
+				view.template.popup=Handlebars.compile(view.layer.popup);
+			} catch(err) {
+				alert("Cant compile popup template");
+			}
+		}
 
 		geojsonLayer = L.geoJson.ajax("", { onEachFeature: geoJsonIter, style: geoJsonStyle, middleware: updatemeta });
 		map.addLayer(geojsonLayer);
@@ -99,9 +106,9 @@ function mapinit() {
 
 	L.control.scale({ imperial: false }).addTo(map);
 	L.control.layers({
-						"OpenStreetmap": colourlayer,
-						"Greyscale": bwlayer
-				},{}).addTo(map);
+			"OpenStreetmap": colourlayer,
+			"Greyscale": bwlayer
+	},{}).addTo(map);
 
 
 	var dbname="wayareaconflicts-nrw";
