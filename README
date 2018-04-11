@@ -1,3 +1,9 @@
 
 - Visualize the BBOX/extent/ConvexHull of the layer
 - When no position is given jump to the layer defined center
+
+
+Installation
+============
+
+apt-get install libhash-flatten-perl
