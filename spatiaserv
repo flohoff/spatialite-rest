@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
 
 use strict;
+use open ':std', ':encoding(UTF-8)';
+use utf8;
 use Mojolicious::Lite;
 use URI;
 use DBI;
@@ -55,7 +57,7 @@ sub db_open {
 	# Need to stat the file - else fail
 
 	my $dbconfig=sprintf('dbi:SQLite:dbname=%s/%s.sqlite', $dbdir, $dbname);
-	my $dbh = DBI->connect($dbconfig, "", "");
+	my $dbh = DBI->connect($dbconfig, "", "", { sqlite_unicode => 1 });
 
 	$dbh->sqlite_load_extension("mod_spatialite");
 
