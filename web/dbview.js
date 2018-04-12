@@ -65,6 +65,15 @@ function geojsonLayerInit(map, dbname, layername) {
 		view.meta=json;
 		view.layer=view.meta.layer[view.layername];
 
+		/* Add static geojson to map */
+		if (view.layer.boundary) {
+			view.boundary=JSON.parse(view.layer.boundary);
+			if (view.boundary) {
+				boundslayer=L.geoJson(view.boundary)
+				map.addLayer(boundslayer);
+			}
+		}
+
 		if (view.layer.shortdescription) {
 			document.title = view.layer.shortdescription;
 		}
