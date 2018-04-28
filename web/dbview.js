@@ -94,6 +94,18 @@ function geojsonLayerInit(map, dbname, layername) {
 
 		refreshoverlay(map, geojsonLayer);
 		renderheader();
+
+		/*
+		 * If user did not supply a center and the database has a center
+		 * zoom to databases center
+		 */
+		if (view.meta.center) {
+			center=view.meta.center;
+			if (center.lat && center.lon && center.zoom) {
+				var mappos = L.Permalink.getMapLocation(center.zoom, [center.lat,center.lon]);
+				map.setView(mappos.center, mappos.zoom);
+			}
+		}
 	});
 }
 
@@ -140,5 +152,4 @@ function mapinit() {
 	var mappos = L.Permalink.getMapLocation(16, [51.917397,8.3930408]);
 	map.setView(mappos.center, mappos.zoom);
 	L.Permalink.setup(map);
-
 }
