@@ -2,8 +2,6 @@
 Todo / Ideas
 ============
 
-- Visualize the BBOX/extent/ConvexHull of the layer
-  - Make this toggleable?
 - Only send date/time in bbox request not full meta
   - If data/process time changes reinit/reload layer/meta
     so that if style etc has changed we will switch
@@ -18,7 +16,13 @@ Todo / Ideas
 - Possibility to address style by a database column
 - Slide in on left with a list of layers
 - Fix remote control link deleting position "#" anchor
-- When no position is given jump to the layer defined center
+- Add possibility of an RSS feed based on the current view
+  -> Database column with feature bbox and RSS info
+- Feature selection for edit link 
+  -> multiple ways, relations, nodes
+- Backend call to hide features (processed)
+  -> Needs "empty" database column for hidden features
+  -> Could we simply change the style and popup?
 
 Installation
 ============
