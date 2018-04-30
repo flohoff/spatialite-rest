@@ -23,6 +23,7 @@ Todo / Ideas
 - Backend call to hide features (processed)
   -> Needs "empty" database column for hidden features
   -> Could we simply change the style and popup?
+- Dont send full meta information in every request
 
 Installation
 ============
