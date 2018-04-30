@@ -19,7 +19,7 @@
 </head>
 
 <body>
-	<div id="head"><h2>test</h2></div>
+	<div id="head"></div>
 	<div id="map"></div>
 
 	<script id="remotecontrol-template" type="text/x-handlebars-template">
@@ -28,13 +28,20 @@
 
 	<script id="head-template" type="text/x-handlebars-template">
 		<div style="float: left">
-		<h3>{{ view.layer.shortdescription }}</h3>
+		{{#if layer }}
+		<h3>{{ layer.shortdescription }}</h3>
 		</div>
 		<div style="float: right">
-		Database: {{ view.dbname }} Layer: {{ view.layername }}<br>
-		Data: {{ view.meta.time.data }} Processed {{ view.meta.time.process }}<br>
-		Features loaded: {{ view.featuresloaded }}
+		Database: {{ dbname }} Layer: {{ layername }}<br>
+		{{# with meta.contact }}
+			Contact: {{ name }} <a href="mailto:{{ email }}">{{ email }}</a><br>
+		{{/with}}
+		Data: {{ meta.time.data }} Processed {{ meta.time.process }}<br>
+		Features loaded: {{ featuresloaded }}<br>
 		</div>
+		{{else}}
+		<h3>No database/layer selected</h3>
+		{{/if}}
 		</div>
 	</script>
 

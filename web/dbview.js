@@ -43,7 +43,7 @@ function refreshoverlay(map, geojsonLayer) {
 }
 
 function renderheader() {
-	$("#head").html(view.template.head( { "view": view } ));
+	$("#head").html(view.template.head( view ));
 }
 
 function updatemeta(data) {
