@@ -15,6 +15,17 @@ function remotecontrol(xmin, xmax, ymin, ymax, wayselect) {
 }
 
 function geoJsonStyle(feature) {
+
+	if (view.layer.stylecolumn) {
+		var stylename=feature.properties[view.layer.stylecolumn];
+		if (stylename) {
+			var style=view.layer.styles[stylename];
+			if (style) {
+				return style;
+			}
+		}
+	}
+
 	if (view.layer.styles != undefined && view.layer.styles.default != undefined) {
 		return view.layer.styles.default;
 	}
