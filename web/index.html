@@ -26,6 +26,27 @@
     <a href="#" onclick="remotecontrol({{ xmin }}, {{ xmax }}, {{ ymin }}, {{ ymax }}, {{ wayselect }})">Edit remote control</a>
 	</script>
 
+	<script id="list-template" type="text/x-handlebars-template">
+		{{#each list}}
+			<div style="margin: 0.5em; background: #e0f0e0; padding: 0.5em;">
+				<h4>Database: {{ this.dbname }}</h4>
+				<div style="font-size: 0.9em; margin-left: 1em;">
+					Data: {{ this.time.data }} Processed: {{ this.time.process }}</br>
+					Contact: {{ this.contact.name }} {{ this.contact.email }}<br>
+				</div>
+				<div style="margin-left: 0.6em; padding: 0.6em;">
+						{{#each this.layer }}
+							<div style="margin-left: 1em; margin-bottom: 1em; background: #e5f5e5;">Layer: <a href="?db={{ ../dbname }}&layer={{ @key }}">{{ @key }}</a>
+								<div style="margin-left: 1em;">
+									{{ this.shortdescription }}
+								</div>
+							</div>
+						{{/each}}
+				</div>
+			</div>
+		{{/each}}
+	</script>
+
 	<script id="head-template" type="text/x-handlebars-template">
 		<div style="float: left">
 		{{#if layer }}
@@ -46,7 +67,7 @@
 	</script>
 
 	<script>
-		mapinit();
+		init();
 	</script>
 </body>
 </html>

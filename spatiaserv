@@ -39,13 +39,16 @@ get '/dummy' => sub {
 
 get '/list' => sub {
 	my $self = shift;
+
 	opendir(my $dh, $dbdir) || die "Can't opendir $dbdir $!";
-	my @files = map { s/\.sqlite$//; $_; }
+	my @files = sort map { s/\.sqlite$//; $_; }
 		grep { /.sqlite$/ && -f "$dbdir/$_" } readdir($dh);
 	closedir $dh;
-	
+
+	my @metas = map { my $meta=db_meta_get(db_open($_)); $meta->{dbname}=$_; $meta; } @files;
+
 	$self->res->headers->header('Access-Control-Allow-Origin' => '*');
-	$self->render( json => \@files );
+	$self->render( json => \@metas );
 };
 
 

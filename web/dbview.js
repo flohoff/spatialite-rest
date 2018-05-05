@@ -21,6 +21,7 @@ function geoJsonStyle(feature) {
 		if (stylename) {
 			var style=view.layer.styles[stylename];
 			if (style) {
+				console.log(style);
 				return style;
 			}
 		}
@@ -120,12 +121,7 @@ function geojsonLayerInit(map, dbname, layername) {
 	});
 }
 
-function mapinit() {
-
-	view.template={};
-	Handlebars.registerPartial("remotecontrol", $("#remotecontrol-template").html());
-	view.template.head=Handlebars.compile($("#head-template").html());
-
+function map_init(dbname, layername) {
 	var map=L.map('map');
 
 	var colourlayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -146,21 +142,41 @@ function mapinit() {
 			"Greyscale": bwlayer
 	},{}).addTo(map);
 
-
-	var dbname="wayareaconflicts-nrw";
-	var layername="wayareaconflict";
-
-	if(url('?db')) {
-		dbname=url('?db');
-	}
-
-	if(url('?layer')) {
-		layername=url('?layer');
-	}
-
 	geojsonLayerInit(map, dbname, layername);
 
 	var mappos = L.Permalink.getMapLocation(16, [51.917397,8.3930408]);
 	map.setView(mappos.center, mappos.zoom);
 	L.Permalink.setup(map);
+}
+
+function list_show() {
+	$.ajax({
+		url: "/spatialite-rest/list/"
+	}).done(function(json) {
+		console.log(json);
+		$("#head").html(view.template.list({ list: json }));
+	});
+}
+
+function init() {
+	view.template={};
+	Handlebars.registerPartial("remotecontrol", $("#remotecontrol-template").html());
+	view.template.head=Handlebars.compile($("#head-template").html());
+	view.template.list=Handlebars.compile($("#list-template").html());
+
+	var dbname;
+	if(url('?db')) {
+		dbname=url('?db');
+	}
+
+	var layername;
+	if(url('?layer')) {
+		layername=url('?layer');
+	}
+
+	if (!dbname || !layername) {
+		list_show();
+	} else {
+		map_init(dbname, layername);
+	}
 }
