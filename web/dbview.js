@@ -21,7 +21,6 @@ function geoJsonStyle(feature) {
 		if (stylename) {
 			var style=view.layer.styles[stylename];
 			if (style) {
-				console.log(style);
 				return style;
 			}
 		}
