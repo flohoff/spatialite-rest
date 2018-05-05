@@ -29,7 +29,7 @@
 	<script id="list-template" type="text/x-handlebars-template">
 		{{#each list}}
 			<div style="margin: 0.5em; background: #e0f0e0; padding: 0.5em;">
-				<h4>Database: {{ this.dbname }}</h4>
+				<h4 id="{{ this.dbname }}">Database: {{ this.dbname }}</h4>
 				<div style="font-size: 0.9em; margin-left: 1em;">
 					Data: {{ this.time.data }} Processed: {{ this.time.process }}</br>
 					Contact: {{ this.contact.name }} {{ this.contact.email }}<br>
@@ -49,7 +49,7 @@
 
 	<script id="head-template" type="text/x-handlebars-template">
 		<div style="float: left">
-		<a style="font-size: 0.8em;" href="?">Back to database list</a>
+		<a style="font-size: 0.8em;" href="?#{{ dbname }}">Back to database list</a>
 		{{#if layer }}
 		<h3>{{ layer.shortdescription }}</h3>
 		</div>

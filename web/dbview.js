@@ -153,8 +153,13 @@ function list_show() {
 	$.ajax({
 		url: "/spatialite-rest/list/"
 	}).done(function(json) {
-		console.log(json);
 		$("#head").html(view.template.list({ list: json }));
+
+		// Scroll database entry into view if we have a anchor
+		var hash=$(window.location.hash);
+		if (hash && hash[0]) {
+			hash[0].scrollIntoView();
+		}
 	});
 }
 
