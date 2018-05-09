@@ -77,11 +77,11 @@ function geojsonLayerInit(map, dbname, layername) {
 		view.layer=view.meta.layer[view.layername];
 
 		/* Add static geojson to map */
-		if (view.layer && view.layer.boundary) {
-			view.boundary=JSON.parse(view.layer.boundary);
+		if (view.meta.boundary) {
+			view.boundary=JSON.parse(view.meta.boundary);
 			if (view.boundary) {
-				boundslayer=L.geoJson(view.boundary)
-				map.addLayer(boundslayer);
+				boundarylayer=L.geoJson(view.boundary)
+				map.addLayer(boundarylayer);
 			}
 		}
 
