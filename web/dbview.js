@@ -19,15 +19,15 @@ function geoJsonStyle(feature) {
 	if (view.layer.stylecolumn) {
 		var stylename=feature.properties[view.layer.stylecolumn];
 		if (stylename) {
-			var style=view.layer.styles[stylename];
+			var style=view.meta.style[stylename];
 			if (style) {
 				return style;
 			}
 		}
 	}
 
-	if (view.layer.styles != undefined && view.layer.styles.default != undefined) {
-		return view.layer.styles.default;
+	if (view.meta.style != undefined && view.meta.style.default != undefined) {
+		return view.meta.style.default;
 	}
 
 	return;
