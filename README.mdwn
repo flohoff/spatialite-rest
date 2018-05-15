@@ -108,4 +108,9 @@ Todo / Ideas
   -> Could we simply change the style and popup?
 - Dont send full meta information in every request
 
+Git Origin
+==========
 
+This is a git repository mirror from:
+
+    git clone git://pax.zz.de/spatialite-rest
