@@ -1,8 +1,59 @@
 
-''spatialite-rest'' is the implementation of a very basic spatialite REST wsgi Gateway
+`spatialite-rest` is the implementation of a very basic spatialite REST wsgi Gateway
 in perl. It serves geometries from the spatialite as GeoJSON for displaying via Leaflet.
 
 All Styles, Layers etc are contained within the spatialites.
+
+Spatialite schema
+=================
+
+The schema beeing served is undergoing some movements and is not fully defined.
+
+Currently a Spatialite may contain multiple "layer" which must have the same boundary
+or bounding box. Each layer may have different attributes e.g. columns. Styles are
+defined globally. The spatialite contains a table per layer which must have the same
+name. A table called 'meta' contains the list of layer, popups, styles and other config.
+The meta table will be completely send to the web client deserialized with Perl `Hash::Flatten`.
+
+This is an example:
+
+    contact.email|f@zz.de
+    contact.name|Florian Lohoff
+    style.default.color|#ff0000
+    style.default.weight|4
+    style.default.opacity|0.9
+    style.ref.color|#000080
+    style.ref.weight|3
+    style.ref.opacity|0.9
+    style.footway.color|#707000
+    style.footway.weight|3
+    style.footway.opacity|0.9
+    style.redundant.color|#007070
+    style.redundant.weight|3
+    style.redundant.opacity|0.6
+    layer.wayproblems.geometrycolumn|geometry
+    layer.wayproblems.srid|4326
+    layer.wayproblems.stylecolumn|style
+    layer.wayproblems.columns:0|id
+    layer.wayproblems.columns:1|key
+    layer.wayproblems.columns:2|value
+    layer.wayproblems.columns:3|changeset
+    layer.wayproblems.columns:4|user
+    layer.wayproblems.columns:5|timestamp
+    layer.wayproblems.columns:6|problem
+    layer.wayproblems.columns:7|style
+    layer.wayproblems.popup|<h4>Way problems:</h4> Way <a href="https://www.openstreetmap.org/way/{{ id }}">{{ id }}</a><br> Last modified {{ timestamp }}<br> in changeset {{ changeset }} by {{ user }}<br> <p style="font-size: 1.2em;">{{ problem }}</p> {{> remotecontrol wayselect=id }}
+    time.data|2018-05-15T11:36:01Z
+    time.process|2018-05-15T11:36:26Z
+    center.lat|51.93326
+    center.lon|8.80966
+    center.zoom|9 
+    boundary|{"coordinates":[[[8.094563,52.07366],[8.103081,52.07369],[8.185742,52.08434], ...
+
+Installation
+============
+
+    apt-get install libhash-flatten-perl libmojolicious-perl
 
 Apache config
 =============
@@ -50,7 +101,4 @@ Todo / Ideas
   -> Could we simply change the style and popup?
 - Dont send full meta information in every request
 
-Installation
-============
 
-apt-get install libhash-flatten-perl
