@@ -1,19 +1,22 @@
 
 `spatialite-rest` is the implementation of a very basic spatialite REST wsgi Gateway
-in perl. It serves geometries from the spatialite as GeoJSON for displaying via Leaflet.
+in perl. It serves geometries from the spatialite as GeoJSON for displaying via a 
+Leaflet jquery based frontend.
 
-All Styles, Layers etc are contained within the spatialites.
+All Styles, Layers etc are contained within the Spatialite databases.
 
 Spatialite schema
 =================
 
 The schema beeing served is undergoing some movements and is not fully defined.
 
-Currently a Spatialite may contain multiple "layer" which must have the same boundary
-or bounding box. Each layer may have different attributes e.g. columns. Styles are
-defined globally. The spatialite contains a table per layer which must have the same
-name. A table called 'meta' contains the list of layer, popups, styles and other config.
-The meta table will be completely send to the web client deserialized with Perl `Hash::Flatten`.
+Currently a Spatialite may contain multiple "layer" which must have the same
+boundary or bounding box. Each layer may have different attributes e.g.
+columns. Styles are defined globally. The spatialite contains a table per layer
+which must have the same name as the layers name. A table called 'meta'
+contains the list of layer, popups, styles and other config.  The meta table
+will be completely send to the web client deserialized with Perl
+`Hash::Flatten` and sent to the javascript frontend as JSON.
 
 This is an example:
 
@@ -53,10 +56,10 @@ This is an example:
 Installation
 ============
 
-    apt-get install libhash-flatten-perl libmojolicious-perl
+    apt-get install libhash-flatten-perl libmojolicious-perl libapache2-mod-perl2
 
 Apache config
-=============
+-------------
 
 You will need to enable mod_perl via `a2enmod mod_perl`
 
@@ -64,16 +67,20 @@ You will need to enable mod_perl via `a2enmod mod_perl`
     
     <Perl>
     	$ENV{PLACK_ENV} = 'production';
-    	$ENV{MOJO_HOME} = '/var/www/osm.zz.de/spatialite-rest';
+    	$ENV{MOJO_HOME} = '/var/www/spatialite-rest';
     	$ENV{MOJO_MODE} = 'deployment';
     </Perl>
     
     <Location /spatialite-rest/>
     	SetHandler perl-script
     	PerlResponseHandler Plack::Handler::Apache2
-    	PerlSetVar psgi_app /var/www/osm.zz.de/spatialite-rest/spatiaserv
+    	PerlSetVar psgi_app /var/www/spatialite-rest/spatiaserv
     </Location>     
 
+Databases
+---------
+
+Databases must end in `.sqlite` and should be in the `spatialite-rest/databases` folder.
 
 Todo / Ideas
 ============
