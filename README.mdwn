@@ -1,4 +1,10 @@
 
+''spatialite-rest'' is the implementation of a very basic spatialite REST wsgi Gateway
+in perl. It serves geometries from the spatialite as GeoJSON for displaying via Leaflet.
+
+All Styles, Layers etc are contained within the spatialites.
+
+
 Todo / Ideas
 ============
 
