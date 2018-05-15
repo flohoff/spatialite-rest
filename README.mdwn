@@ -4,6 +4,25 @@ in perl. It serves geometries from the spatialite as GeoJSON for displaying via 
 
 All Styles, Layers etc are contained within the spatialites.
 
+Apache config
+=============
+
+You will need to enable mod_perl via `a2enmod mod_perl`
+
+    PerlOptions +Parent
+    
+    <Perl>
+    	$ENV{PLACK_ENV} = 'production';
+    	$ENV{MOJO_HOME} = '/var/www/osm.zz.de/spatialite-rest';
+    	$ENV{MOJO_MODE} = 'deployment';
+    </Perl>
+    
+    <Location /spatialite-rest/>
+    	SetHandler perl-script
+    	PerlResponseHandler Plack::Handler::Apache2
+    	PerlSetVar psgi_app /var/www/osm.zz.de/spatialite-rest/spatiaserv
+    </Location>     
+
 
 Todo / Ideas
 ============
