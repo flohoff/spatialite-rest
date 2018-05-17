@@ -8,9 +8,18 @@ function remotecontrol(xmin, xmax, ymin, ymax, wayselect) {
 		addon=addon + "&select=way" + wayselect;
 	}
 
+	var uri="http://localhost:8111/load_and_zoom?left=" + xmin + "&right=" + xmax + "&top=" + ymax + "&bottom=" + ymin + addon;
+
 	$.ajax({
-		url: "http://localhost:8111/load_and_zoom?left=" + xmin + "&right=" + xmax + "&top=" + ymax + "&bottom=" + ymin + addon
+		url: uri
 	}).done(function(json) {
+	}).fail(function(xhr, status, error) {
+		var uri="http://localhost:8111/load_and_zoom?callback=?&left=" + xmin + "&right=" + xmax + "&top=" + ymax + "&bottom=" + ymin + addon;
+		$.ajax({
+			dataType: "json",
+			url: uri,
+			crossDomain: true,
+			}).fail(function() { alert("Failed") });
 	});
 }
 
