@@ -8,19 +8,36 @@ function remotecontrol(xmin, xmax, ymin, ymax, wayselect) {
 		addon=addon + "&select=way" + wayselect;
 	}
 
-	var uri="http://localhost:8111/load_and_zoom?left=" + xmin + "&right=" + xmax + "&top=" + ymax + "&bottom=" + ymin + addon;
+	if (location.protocol === 'http' ||
+		bowser.check({chrome: "53", firefox: "55"})) {
+		uri = "http://127.0.0.1:8111/load_and_zoom?";
+	} else {
+		uri = "https://127.0.0.1:8112/load_and_zoom?";
+	}
 
-	$.ajax({
-		url: uri
-	}).done(function(json) {
-	}).fail(function(xhr, status, error) {
-		var uri="http://localhost:8111/load_and_zoom?callback=?&left=" + xmin + "&right=" + xmax + "&top=" + ymax + "&bottom=" + ymin + addon;
-		$.ajax({
-			dataType: "json",
-			url: uri,
-			crossDomain: true,
-			}).fail(function() { alert("Failed") });
-	});
+	uri=uri + "left=" + xmin + "&right=" + xmax + "&top=" + ymax + "&bottom=" + ymin + addon;
+
+	console.log("uri" + uri);
+
+	var loaded=false;
+	var iframe = $('<iframe>')
+		.hide()
+		.appendTo('body')
+		.attr("src", uri)
+		.on('load', function() {
+			console.log("loaded");
+			console.log($(this));
+			$(this).remove();
+			loaded = true;
+		});
+
+	setTimeout(function () {
+		console.log("timeout");
+		if (!loaded) {
+			alert("Remote editor notification failed");
+			iframe.remove();
+		}
+		}, 1000);
 }
 
 function geoJsonStyle(feature) {
