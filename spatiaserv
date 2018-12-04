@@ -45,7 +45,7 @@ get '/list' => sub {
 		grep { /.sqlite$/ && -f "$dbdir/$_" } readdir($dh);
 	closedir $dh;
 
-	my @metas = map { my $meta=db_meta_get(db_open($_)); $meta->{dbname}=$_; $meta; } @files;
+	my @metas = map { my $meta=db_meta_get(db_open($_)); $meta->{dbname}=$_; delete($meta->{boundary}); $meta; } @files;
 
 	$self->res->headers->header('Access-Control-Allow-Origin' => '*');
 	$self->render( json => \@metas );
@@ -163,5 +163,4 @@ get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2' => sub {
 	$self->render( json => { type => "FeatureCollection", features => \@res, properties => { meta => $meta } });
 };
 
-app->start;
-
+app->start("fastcgi");
