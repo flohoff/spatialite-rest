@@ -108,12 +108,11 @@ sub row_to_geojson_feature {
 	return $new;
 }
 
-get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2' => sub {
-	my $self = shift;
-	my $dbh=db_open($self->param("dbname"));
-	my $meta=db_meta_get($dbh);
+helper bbox => sub {
+	my ($self, $dbname, $layername, $x1, $y1, $x2, $y2, $z) = @_;
 
-	my $layername=$self->param("layer");
+	my $dbh=db_open($dbname);
+	my $meta=db_meta_get($dbh);
 
 	if (!defined($meta->{layer}{$layername})) {
 		$self->render(status => 404, text => "Layer not found");
@@ -135,10 +134,10 @@ get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2' => sub {
 			limit	2000",
 			$layer->{geometrycolumn}, $layer->{geometrycolumn}, $layer->{geometrycolumn},
 			$layer->{geometrycolumn}, $layer->{geometrycolumn}, $columns, $layername, $layer->{geometrycolumn},
- 			sprintf("%f", $self->param("x1")),
-			sprintf("%f", $self->param("y1")),
-			sprintf("%f", $self->param("x2")),
-			sprintf("%f", $self->param("y2"))
+ 			sprintf("%f", $x1),
+			sprintf("%f", $y1),
+			sprintf("%f", $x2),
+			sprintf("%f", $y2)
 		);
 
 	my $sql=$dbh->prepare($sqlstring) || die $DBI::errstr;
@@ -161,6 +160,30 @@ get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2' => sub {
 
 	$self->res->headers->header('Access-Control-Allow-Origin' => '*');
 	$self->render( json => { type => "FeatureCollection", features => \@res, properties => { meta => $meta } });
+};
+
+get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2/#z' => sub {
+	my $self = shift;
+	$self->bbox(
+		$self->param("dbname"),
+		$self->param("layer"),
+		$self->param("x1"),
+		$self->param("y1"),
+		$self->param("x2"),
+		$self->param("y2"),
+		$self->param("z"));
+};
+
+get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2' => sub {
+	my $self = shift;
+	$self->bbox(
+		$self->param("dbname"),
+		$self->param("layer"),
+		$self->param("x1"),
+		$self->param("y1"),
+		$self->param("x2"),
+		$self->param("y2"),
+		16);
 };
 
 app->start("fastcgi");

@@ -74,7 +74,8 @@ function refreshoverlay(map, geojsonLayer) {
 		+ bbox.getWest() + "/" 
 		+ bbox.getNorth() + "/"
 		+ bbox.getEast() + "/"
-		+ bbox.getSouth();
+		+ bbox.getSouth() + "/"
+		+ map.getZoom();
 
 	geojsonLayer.refresh(url);
 }
