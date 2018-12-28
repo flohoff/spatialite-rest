@@ -99,7 +99,7 @@ sub row_to_geojson_feature {
 	my $new={ "geometry" => $geojson, "type" => "Feature" };
 
 	# Copy all columns except the geometry to the feature properties
-	my @keys=grep { !/geometry/ } keys %{$row};
+	my @keys=grep { !/geometry/ && !/geojson/ } keys %{$row};
 
 	foreach my $column ( @keys ) {
 		$new->{properties}{$column}=$row->{$column};
