@@ -107,9 +107,25 @@ sub row_to_geojson_feature {
 
 	return $new;
 }
+my $simpletable = {
+        11 => 0.001,
+        12 => 0.0005,
+        13 => 0.0003,
+        14 => 0.0001,
+        15 => 0.00005,
+        16 => 0.000005,
+        17 => 0.000001,
+        18 => 0.0000005,
+};
+
+sub zoomtosimplify {
+        my ($zoom) = @_;
+
+        return $simpletable->{$zoom} // 0.001;
+}
 
 helper bbox => sub {
-	my ($self, $dbname, $layername, $x1, $y1, $x2, $y2, $z) = @_;
+	my ($self, $dbname, $layername, $x1, $y1, $x2, $y2, $zoom) = @_;
 
 	my $dbh=db_open($dbname);
 	my $meta=db_meta_get($dbh);
@@ -122,8 +138,10 @@ helper bbox => sub {
 	my $layer=$meta->{layer}{$layername};
 	my $columns=join(",", @{$layer->{columns}});
 
+	my $simplify=zoomtosimplify($zoom);
+
 	my $sqlstring=sprintf(
-			"select	AsGeoJSON(%s) geojson,
+			"select	AsGeoJSON(ST_SimplifyPreserveTopology(%s, %s)) geojson,
 				MbrMinX(Buffer(%s, 0.0005)) xmin,
 				MbrMaxX(Buffer(%s, 0.0005)) xmax,
 				MbrMinY(Buffer(%s, 0.0005)) ymin,
@@ -132,12 +150,14 @@ helper bbox => sub {
 			from	%s
 			where	ST_Intersects(%s, BuildMbr(%s,%s,%s,%s,4326))
 			limit	2000",
-			$layer->{geometrycolumn}, $layer->{geometrycolumn}, $layer->{geometrycolumn},
-			$layer->{geometrycolumn}, $layer->{geometrycolumn}, $columns, $layername, $layer->{geometrycolumn},
- 			sprintf("%f", $x1),
-			sprintf("%f", $y1),
-			sprintf("%f", $x2),
-			sprintf("%f", $y2)
+			$layer->{geometrycolumn}, $simplify,
+			$layer->{geometrycolumn},
+			$layer->{geometrycolumn},
+			$layer->{geometrycolumn},
+			$layer->{geometrycolumn},
+			$columns,
+			$layername,
+			$layer->{geometrycolumn}, sprintf("%f", $x1), sprintf("%f", $y1), sprintf("%f", $x2), sprintf("%f", $y2)
 		);
 
 	my $sql=$dbh->prepare($sqlstring) || die $DBI::errstr;
@@ -151,7 +171,7 @@ helper bbox => sub {
 	#  then a Geometry will be returned representing the MBR for this line segment
 	#
 
-	$sql->execute();
+	$sql->execute() || die $DBI::errstr;
 
 	my @res;
 	while(my $row=$sql->fetchrow_hashref()) {
@@ -187,3 +207,4 @@ get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2' => sub {
 };
 
 app->start("fastcgi");
+#app->start();
