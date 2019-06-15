@@ -124,7 +124,11 @@ function geojsonLayerInit(map, dbname, layername) {
 			}
 		}
 
-		geojsonLayer = L.geoJson.ajax("", { onEachFeature: geoJsonIter, style: geoJsonStyle, middleware: updatemeta });
+		geojsonLayer=L.geoJson.ajax("", {
+			onEachFeature: geoJsonIter,
+			style: geoJsonStyle,
+			middleware: updatemeta
+		});
 		map.addLayer(geojsonLayer);
 
 		map.on('zoomend', function() { refreshoverlay(map, geojsonLayer); });
