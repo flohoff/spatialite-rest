@@ -51,22 +51,23 @@
 	</script>
 
 	<script id="head-template" type="text/x-handlebars-template">
-		<div style="float: left">
-		<a style="font-size: 0.8em;" href="?#{{ dbname }}">Back to database list</a>
-		{{#if layer }}
-		<h3>{{ layer.shortdescription }}</h3>
-		</div>
-		<div style="float: right">
-		Database: {{ dbname }} Layer: {{ layername }}<br>
-		{{# with meta.contact }}
-			Contact: {{ name }} <a href="mailto:{{ email }}">{{ email }}</a><br>
-		{{/with}}
-		Data: {{ meta.time.data }} Processed {{ meta.time.process }}<br>
-		Features loaded: {{ featuresloaded }}<br>
-		</div>
-		{{else}}
-		<h3>No database/layer selected</h3>
-		{{/if}}
+		<div style="padding: 1em">
+			{{#if layer }}
+			<div style="float: left">
+				<a style="font-size: 0.8em;" href="?#{{ dbname }}">Back to database list</a>
+				<h3>{{ layer.shortdescription }}</h3>
+			</div>
+			<div style="float: right">
+				Database: {{ dbname }} Layer: {{ layername }}<br>
+				{{# with meta.contact }}
+					Contact: {{ name }} <a href="mailto:{{ email }}">{{ email }}</a><br>
+				{{/with}}
+				Data: {{ meta.time.data }} Processed {{ meta.time.process }}<br>
+				Features loaded: {{ featuresloaded }}<br>
+			</div>
+			{{else}}
+			<h3>No database/layer selected</h3>
+			{{/if}}
 		</div>
 	</script>
 
