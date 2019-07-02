@@ -17,8 +17,6 @@ function remotecontrol(xmin, xmax, ymin, ymax, wayselect) {
 
 	uri=uri + "left=" + xmin + "&right=" + xmax + "&top=" + ymax + "&bottom=" + ymin + addon;
 
-	console.log("uri" + uri);
-
 	var loaded=false;
 	var iframe = $('<iframe>')
 		.hide()
@@ -61,8 +59,10 @@ function geoJsonStyle(feature) {
 
 // Use the Handlebars compiled popupTemplate to create the popup text
 function geoJsonIter(feat, layer) {
-	  feat.properties.remotecontrol="<a href=\"#\" onclick=\"remotecontrol(this)\">Edit remote control</a>";
-	  layer.bindPopup(view.template.popup(feat.properties));
+	feat.properties.remotecontrol="<a href=\"#\" onclick=\"remotecontrol(this)\">Edit remote control</a>";
+	if (view.template.popup) {
+		layer.bindPopup(view.template.popup(feat.properties));
+	}
 }
 
 function refreshoverlay(map, geojsonLayer) {
@@ -127,7 +127,10 @@ function geojsonLayerInit(map, dbname, layername) {
 		geojsonLayer=L.geoJson.ajax("", {
 			onEachFeature: geoJsonIter,
 			style: geoJsonStyle,
-			middleware: updatemeta
+			middleware: updatemeta,
+			pointToLayer: function (feature, latlng) {
+				return L.circleMarker(latlng, geoJsonStyle(feature));
+			}
 		});
 		map.addLayer(geojsonLayer);
 
