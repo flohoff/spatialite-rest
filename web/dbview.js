@@ -23,19 +23,16 @@ function remotecontrol(xmin, xmax, ymin, ymax, wayselect) {
 		.appendTo('body')
 		.attr("src", uri)
 		.on('load', function() {
-			console.log("loaded");
-			console.log($(this));
 			$(this).remove();
 			loaded = true;
 		});
 
 	setTimeout(function () {
-		console.log("timeout");
 		if (!loaded) {
 			alert("Remote editor notification failed");
 			iframe.remove();
 		}
-		}, 1000);
+	}, 1000);
 }
 
 function geoJsonStyle(feature) {
