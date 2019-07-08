@@ -93,6 +93,14 @@ function updatemeta(data) {
 	return data;
 }
 
+function pointtolayer(feature, latlng) {
+	var style=geoJsonStyle(feature);
+	if (style.icon) {
+		return new L.Marker(latlng, { icon: view.icon[style.icon] });
+	}
+	return new L.CircleMarker(latlng, style);
+}
+
 function geojsonLayerInit(map, dbname, layername) {
 	view.layername=layername;
 	view.dbname=dbname;
@@ -124,13 +132,22 @@ function geojsonLayerInit(map, dbname, layername) {
 			}
 		}
 
+		if (view.meta.icon) {
+			/* Prepare icons in definition to be leaflet icons */
+			for(var iname in view.meta.icon) {
+				view.icon={};
+				var icondef=view.meta.icon[iname];
+				icondef.iconUrl="/spatialite-rest/file/" +
+					view.dbname + "/" + icondef.iconUrl;
+				view.icon[iname]=new L.Icon(icondef);
+			}
+		}
+
 		geojsonLayer=L.geoJson.ajax("", {
 			onEachFeature: geoJsonIter,
 			style: geoJsonStyle,
 			middleware: updatemeta,
-			pointToLayer: function (feature, latlng) {
-				return L.circleMarker(latlng, geoJsonStyle(feature));
-			}
+			pointToLayer: pointtolayer
 		});
 		map.addLayer(geojsonLayer);
 
