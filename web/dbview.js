@@ -134,8 +134,8 @@ function geojsonLayerInit(map, dbname, layername) {
 
 		if (view.meta.icon) {
 			/* Prepare icons in definition to be leaflet icons */
+			view.icon={};
 			for(var iname in view.meta.icon) {
-				view.icon={};
 				var icondef=view.meta.icon[iname];
 				icondef.iconUrl="/spatialite-rest/file/" +
 					view.dbname + "/" + icondef.iconUrl;
