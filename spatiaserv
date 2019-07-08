@@ -182,6 +182,26 @@ helper bbox => sub {
 	$self->render( json => { type => "FeatureCollection", features => \@res, properties => { meta => $meta } });
 };
 
+get '/file/:dbname/#file' => sub {
+	my $self = shift;
+
+	my $dbname=$self->param("dbname");
+	my $dbh=db_open($dbname);
+
+	my $sql=$dbh->prepare("
+			select	mime, content
+			from	files
+			where	name = ?
+			") or die $DBI::errstr;
+
+	my $res=$sql->execute($self->param("file")) or die $DBI::errstr;
+	my $row=$sql->fetchrow_hashref();
+	$sql->finish();
+
+	$self->res->headers->content_type($row->{mime});
+	$self->render( data => $row->{content} );
+};
+
 get '/bbox/:dbname/:layer/#x1/#y1/#x2/#y2/#z' => sub {
 	my $self = shift;
 	$self->bbox(
