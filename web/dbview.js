@@ -65,6 +65,11 @@ function geoJsonIter(feat, layer) {
 function refreshoverlay(map, geojsonLayer) {
 	var bbox=map.getBounds();
 
+	if (view.layer.minzoom && map.getZoom() < view.layer.minzoom) {
+		geojsonLayer.clearLayers();
+		return;
+	}
+
 	var url="/spatialite-rest/bbox/"
 		+ view.dbname + "/"
 		+ view.layername + "/"
