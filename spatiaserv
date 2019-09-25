@@ -138,44 +138,60 @@ helper bbox => sub {
 	my $layer=$meta->{layer}{$layername};
 	my $columns=join(",", @{$layer->{columns}});
 
+	my @geometrycolumns;
+	if (defined($layer->{geometrycolumns})) {
+		# Support version 2 files with multiple geometrys
+		@geometrycolumns=map { { geom => $_, style => $_ . "style" } } @{$layer->{geometrycolumns}};
+	} else {
+		# Old style version 1 - single geometry and random stylecolumn name
+		push @geometrycolumns, { geom => $layer->{geometrycolumn}, style => $layer->{stylecolumn} };
+	}
+
 	my $simplify=zoomtosimplify($zoom);
 
-	my $sqlstring=sprintf(
-			"select	AsGeoJSON(ST_SimplifyPreserveTopology(%s, %s)) geojson,
-				MbrMinX(Buffer(%s, 0.0005)) xmin,
-				MbrMaxX(Buffer(%s, 0.0005)) xmax,
-				MbrMinY(Buffer(%s, 0.0005)) ymin,
-				MbrMaxY(Buffer(%s, 0.0005)) ymax,
-				%s
-			from	%s
-			where	ST_Intersects(%s, BuildMbr(%s,%s,%s,%s,4326))
-			limit	2000",
-			$layer->{geometrycolumn}, $simplify,
-			$layer->{geometrycolumn},
-			$layer->{geometrycolumn},
-			$layer->{geometrycolumn},
-			$layer->{geometrycolumn},
-			$columns,
-			$layername,
-			$layer->{geometrycolumn}, sprintf("%f", $x1), sprintf("%f", $y1), sprintf("%f", $x2), sprintf("%f", $y2)
-		);
-
-	my $sql=$dbh->prepare($sqlstring) || die $DBI::errstr;
-
-	#print STDERR $sqlstring . "\n";
-
-	# BuildMbr 	BuildMbr( x1 Double precision , y1 Double precision ,
-	#            x2 Double precision , y2 Double precision [ , SRID Integer] ) : Geometry 	
-	#
-	#  base 	[x1 y1] and [x2 y2] are assumed to be Points identifying a line segment;
-	#  then a Geometry will be returned representing the MBR for this line segment
-	#
-
-	$sql->execute() || die $DBI::errstr;
-
 	my @res;
-	while(my $row=$sql->fetchrow_hashref()) {
-		push @res, row_to_geojson_feature($layer, $row);
+	foreach my $geometrycolumnandstyle ( @geometrycolumns ) {
+		my $geometrycolumn=$geometrycolumnandstyle->{geom};
+		my $stylecolumn=$geometrycolumnandstyle->{style};
+		my $sqlstring=sprintf(
+				"select	AsGeoJSON(ST_SimplifyPreserveTopology(%s, %s)) geojson,
+					MbrMinX(Buffer(%s, 0.0005)) xmin,
+					MbrMaxX(Buffer(%s, 0.0005)) xmax,
+					MbrMinY(Buffer(%s, 0.0005)) ymin,
+					MbrMaxY(Buffer(%s, 0.0005)) ymax,
+					%s as style,
+					%s
+				from	%s
+				where	ST_Intersects(%s, BuildMbr(%s,%s,%s,%s,4326))
+				limit	1000",
+				$geometrycolumn, $simplify,
+				$geometrycolumn,
+				$geometrycolumn,
+				$geometrycolumn,
+				$geometrycolumn,
+				$stylecolumn,
+				$columns,
+				$layername,
+				$geometrycolumn,
+				sprintf("%f", $x1), sprintf("%f", $y1), sprintf("%f", $x2), sprintf("%f", $y2)
+			);
+
+		my $sql=$dbh->prepare($sqlstring) || die $DBI::errstr;
+
+		#print STDERR $sqlstring . "\n";
+
+		# BuildMbr 	BuildMbr( x1 Double precision , y1 Double precision ,
+		#            x2 Double precision , y2 Double precision [ , SRID Integer] ) : Geometry 	
+		#
+		#  base 	[x1 y1] and [x2 y2] are assumed to be Points identifying a line segment;
+		#  then a Geometry will be returned representing the MBR for this line segment
+		#
+
+		$sql->execute() || die $DBI::errstr;
+
+		while(my $row=$sql->fetchrow_hashref()) {
+			push @res, row_to_geojson_feature($layer, $row);
+		}
 	}
 
 	$self->res->headers->header('Access-Control-Allow-Origin' => '*');
