@@ -159,7 +159,7 @@ helper bbox => sub {
 					MbrMaxX(Buffer(%s, 0.0005)) xmax,
 					MbrMinY(Buffer(%s, 0.0005)) ymin,
 					MbrMaxY(Buffer(%s, 0.0005)) ymax,
-					%s as style,
+					%s
 					%s
 				from	%s
 				where	ST_Intersects(%s, BuildMbr(%s,%s,%s,%s,4326))
@@ -169,7 +169,7 @@ helper bbox => sub {
 				$geometrycolumn,
 				$geometrycolumn,
 				$geometrycolumn,
-				$stylecolumn,
+				defined($stylecolumn) ? sprintf("%s as style,", $stylecolumn) : "",
 				$columns,
 				$layername,
 				$geometrycolumn,
