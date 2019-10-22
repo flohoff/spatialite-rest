@@ -86,6 +86,10 @@ function renderheader() {
 function updatemeta(data) {
 	view.meta=data.properties.meta;
 	view.featuresloaded=data.features.length;
+	view.featuresmax=1000;
+	if (view.layer.maxfeatures) {
+		view.featuresmax=view.layer.maxfeatures
+	}
 
 	renderheader();
 
