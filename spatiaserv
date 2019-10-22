@@ -147,6 +147,8 @@ helper bbox => sub {
 		push @geometrycolumns, { geom => $layer->{geometrycolumn}, style => $layer->{stylecolumn} };
 	}
 
+	my $maxfeatures=$layer->{maxfeatures} // 1000;
+
 	my $simplify=zoomtosimplify($zoom);
 
 	my @res;
@@ -163,7 +165,7 @@ helper bbox => sub {
 					%s
 				from	%s
 				where	ST_Intersects(%s, BuildMbr(%s,%s,%s,%s,4326))
-				limit	1000",
+				limit	%s",
 				$geometrycolumn, $simplify,
 				$geometrycolumn,
 				$geometrycolumn,
@@ -173,7 +175,8 @@ helper bbox => sub {
 				$columns,
 				$layername,
 				$geometrycolumn,
-				sprintf("%f", $x1), sprintf("%f", $y1), sprintf("%f", $x2), sprintf("%f", $y2)
+				sprintf("%f", $x1), sprintf("%f", $y1), sprintf("%f", $x2), sprintf("%f", $y2),
+				$maxfeatures
 			);
 
 		my $sql=$dbh->prepare($sqlstring) || die $DBI::errstr;
