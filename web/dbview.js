@@ -77,6 +77,12 @@ function refreshoverlay(map, geojsonLayer) {
 		+ map.getZoom();
 
 	geojsonLayer.refresh(url);
+
+	ls=window.localStorage;
+	center=map.getCenter();
+	ls.setItem(view.dbname + "-lat", center.lat);
+	ls.setItem(view.dbname + "-lng", center.lng);
+	ls.setItem(view.dbname + "-zoom", map.getZoom());
 }
 
 function renderheader() {
@@ -157,20 +163,37 @@ function geojsonLayerInit(map, dbname, layername) {
 		map.on('zoomend', function() { refreshoverlay(map, geojsonLayer); });
 		map.on('dragend', function() { refreshoverlay(map, geojsonLayer); });
 
-		refreshoverlay(map, geojsonLayer);
-		renderheader();
-
 		/*
 		 * If user did not supply a center and the database has a center
 		 * zoom to databases center
 		 */
-		if (view.meta.center) {
-			center=view.meta.center;
-			if (center.lat && center.lon && center.zoom) {
-				var mappos = L.Permalink.getMapLocation(center.zoom, [center.lat,center.lon]);
-				map.setView(mappos.center, mappos.zoom);
-			}
+
+		var l;
+
+		/* Try to get position from window local storage */
+		ls=window.localStorage;
+		lat=ls.getItem(view.dbname + "-lat");
+		lng=ls.getItem(view.dbname + "-lng");
+		z=ls.getItem(view.dbname + "-zoom");
+		if (lat && lng && z) {
+			l={ zoom: z, lat: lat, lon: lng };
 		}
+
+		/* Center from database meta */
+		if (!l && view.meta.center) {
+			l=view.meta.center;
+		}
+
+		/* Fallback last resort */
+		if (!l) {
+			l={ zoom: 16, lat: 51.9, lon: 8.39 };
+		}
+
+		var mappos = L.Permalink.getMapLocation(l.zoom, [l.lat,l.lon]);
+		map.setView(mappos.center, mappos.zoom);
+
+		refreshoverlay(map, geojsonLayer);
+		renderheader();
 	});
 }
 
@@ -196,9 +219,6 @@ function map_init(dbname, layername) {
 	},{}).addTo(map);
 
 	geojsonLayerInit(map, dbname, layername);
-
-	var mappos = L.Permalink.getMapLocation(16, [51.917397,8.3930408]);
-	map.setView(mappos.center, mappos.zoom);
 	L.Permalink.setup(map);
 }
 
