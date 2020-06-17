@@ -193,6 +193,7 @@ helper bbox => sub {
 		$sql->execute() || die $DBI::errstr;
 
 		while(my $row=$sql->fetchrow_hashref()) {
+			next if (!defined($row->{geojson}));
 			push @res, row_to_geojson_feature($layer, $row);
 		}
 	}
