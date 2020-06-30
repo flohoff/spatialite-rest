@@ -36,6 +36,8 @@ This is an example:
     style.redundant.opacity|0.6
     layer.wayproblems.geometrycolumn|geometry
     layer.wayproblems.srid|4326
+    layer.wayproblems.maxfeatures|1000
+    layer.wayproblems.minzoom|12
     layer.wayproblems.stylecolumn|style
     layer.wayproblems.columns:0|id
     layer.wayproblems.columns:1|key
@@ -52,6 +54,22 @@ This is an example:
     center.lon|8.80966
     center.zoom|9 
     boundary|{"coordinates":[[[8.094563,52.07366],[8.103081,52.07369],[8.185742,52.08434], ...
+
+
+Old style databases hat only a single `geometrycolumn` and a single `stylecolumn`. Newer database
+may contain multiple geometry columns per row. Then there should be a
+
+    layer.layername.geometrycolumns:0|fooline
+    layer.layername.geometrycolumns:1|barpoint
+
+which is an array to name the geometry columns. In that case the `stylecolumn` will not be used
+or parsed. It is assumed that the style column for the geometry column is the same name
+suffixed with style e.g.
+
+    fooline
+    foolinestyle
+    barpoint
+    barpointstyle
 
 Installation
 ============
@@ -90,13 +108,9 @@ Todo / Ideas
     so that if style etc has changed we will switch
 - Possibility to send feature limit to backend
 - Show if feature limit has been reached
-- Zoom limit from layer config e.g. if on to high zoom level dont issue bbox
-  but delete layer - Show a statement to zoom in
 - Load signalling somewhere 
-- File serve url route
 - Display long description of layer processing (iframe popover with
   file from database?)
-- Possibility to address style by a database column
 - Slide in on left with a list of layers
 - Fix remote control link deleting position "#" anchor
 - Add possibility of an RSS feed based on the current view
