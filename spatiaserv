@@ -6,6 +6,7 @@ use utf8;
 use Mojolicious::Lite;
 use URI;
 use DBI;
+use DBD::SQLite::Constants qw/:file_open/;
 use JSON;
 use Carp;
 use FindBin qw($Bin);
