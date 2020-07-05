@@ -60,7 +60,10 @@ sub db_open {
 	# Need to stat the file - else fail
 
 	my $dbconfig=sprintf('dbi:SQLite:dbname=%s/%s.sqlite', $dbdir, $dbname);
-	my $dbh = DBI->connect($dbconfig, "", "", { sqlite_unicode => 1 });
+	my $dbh = DBI->connect($dbconfig, "", "", {
+		sqlite_unicode => 1,
+		sqlite_open_flags => SQLITE_OPEN_READONLY,
+	});
 
 	$dbh->sqlite_load_extension("mod_spatialite");
 
