@@ -76,8 +76,17 @@ sub db_meta_get {
 	my ($dbh) = @_;
 
 	my $sql=$dbh->prepare("select key,value from meta");
+
+	if (!defined($sql)) {
+		return undef;
+	}
+
 	$sql->execute();
 	my $rows=$sql->fetchall_arrayref();
+
+	if (!defined($rows)) {
+		return undef;
+	}
 
 	my $meta;
 	foreach my $row ( @{$rows} ) {
