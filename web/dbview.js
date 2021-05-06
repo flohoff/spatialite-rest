@@ -18,6 +18,7 @@ function remotecontrol(xmin, xmax, ymin, ymax, wayselect) {
 	uri=uri + "left=" + xmin + "&right=" + xmax + "&top=" + ymax + "&bottom=" + ymin + addon;
 
 	var loaded=false;
+	var timeout;
 	var iframe = $('<iframe>')
 		.hide()
 		.appendTo('body')
@@ -25,14 +26,21 @@ function remotecontrol(xmin, xmax, ymin, ymax, wayselect) {
 		.on('load', function() {
 			$(this).remove();
 			loaded = true;
+			if (timeout) {
+				clearTimeout(timeout);
+				timeout=null;
+			}
+			iframe=null;
 		});
 
-	setTimeout(function () {
+	timeout=setTimeout(function () {
+		timeout=null;
 		if (!loaded) {
 			alert("Remote editor notification failed");
 			iframe.remove();
+			iframe=null;
 		}
-	}, 1000);
+	}, 2000);
 }
 
 function geoJsonStyle(feature) {
