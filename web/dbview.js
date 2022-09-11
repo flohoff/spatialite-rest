@@ -208,7 +208,7 @@ function geojsonLayerInit(map, dbname, layername) {
 function map_init(dbname, layername) {
 	var map=L.map('map');
 
-	var colourlayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	var colourlayer=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 		maxZoom: 18,
 		attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
 		id: 'colour'
