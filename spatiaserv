@@ -12,9 +12,11 @@ use Carp;
 use FindBin qw($Bin);
 use Encode;
 use POSIX;
+use Clone 'clone';
 use Scalar::Util;
 use Data::Dumper;
 use Hash::Flatten qw/unflatten/;
+
 
 my $dbdir="$Bin/databases";
 
@@ -46,12 +48,38 @@ get '/list' => sub {
 		grep { /.sqlite$/ && -f "$dbdir/$_" } readdir($dh);
 	closedir $dh;
 
-	my @metas = map { my $meta=db_meta_get(db_open($_)); $meta->{dbname}=$_; delete($meta->{boundary}); $meta; } @files;
+	my @metas = map {
+		my ($db, $meta)=db_open_cached($_);
+		my $m=clone($meta);
+		$m->{dbname}=$_;
+		delete($m->{boundary});
+		$m;
+	} @files;
 
 	$self->res->headers->header('Access-Control-Allow-Origin' => '*');
 	$self->render( json => \@metas );
 };
 
+my $dbhandles={};
+
+sub db_open_cached {
+	my ($dbname) = @_;
+
+	if (defined($dbhandles->{$dbname})) {
+		my $dbc=$dbhandles->{$dbname};
+		return ($dbc->{dbh}, $dbc->{meta});
+	}
+
+	my $dbh=db_open($dbname);
+	my $meta=db_meta_get($dbh);
+
+	$dbhandles->{$dbname}={
+		dbh => $dbh,
+		meta => $meta
+	};
+	
+	return ($dbh, $meta);
+}
 
 sub db_open {
 	my ($dbname) = @_;
@@ -98,10 +126,11 @@ sub db_meta_get {
 
 get '/meta/:dbname' => sub {
 	my $self = shift;
-	my $dbh=db_open($self->param("dbname"));
+
+	my ($dbh, $meta)=db_open_cached($self->param("dbname"));
 
 	$self->res->headers->header('Access-Control-Allow-Origin' => '*');
-	$self->render( json => db_meta_get($dbh));
+	$self->render( json => $meta );
 };
 
 sub row_to_geojson_feature {
@@ -140,8 +169,7 @@ sub zoomtosimplify {
 helper bbox => sub {
 	my ($self, $dbname, $layername, $x1, $y1, $x2, $y2, $zoom) = @_;
 
-	my $dbh=db_open($dbname);
-	my $meta=db_meta_get($dbh);
+	my ($dbh, $meta)=db_open_cached($dbname);
 
 	if (!defined($meta->{layer}{$layername})) {
 		$self->render(status => 404, text => "Layer not found");
@@ -219,7 +247,7 @@ get '/file/:dbname/#file' => sub {
 	my $self = shift;
 
 	my $dbname=$self->param("dbname");
-	my $dbh=db_open($dbname);
+	my ($dbh, $meta)=db_open_cached($dbname);
 
 	my $sql=$dbh->prepare("
 			select	mime, content
