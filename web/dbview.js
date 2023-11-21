@@ -72,6 +72,8 @@ function refreshoverlay(map, geojsonLayer) {
 
 	if (view.layer.minzoom && map.getZoom() < view.layer.minzoom) {
 		geojsonLayer.clearLayers();
+		view.featuresloaded=0;
+		updatemeta();
 		return;
 	}
 
@@ -97,17 +99,22 @@ function renderheader() {
 	$("#head").html(view.template.head( view ));
 }
 
-function updatemeta(data) {
+function updatedata(data) {
 	view.meta=data.properties.meta;
 	view.featuresloaded=data.features.length;
+
+	updatemeta()
+
+	return data;
+}
+
+function updatemeta() {
 	view.maxfeatures=1000;
 	if (view.layer.maxfeatures) {
 		view.maxfeatures=view.layer.maxfeatures
 	}
 
 	renderheader();
-
-	return data;
 }
 
 function pointtolayer(feature, latlng) {
@@ -163,13 +170,15 @@ function geojsonLayerInit(map, dbname, layername) {
 		geojsonLayer=L.geoJson.ajax("", {
 			onEachFeature: geoJsonIter,
 			style: geoJsonStyle,
-			middleware: updatemeta,
+			middleware: updatedata,
 			pointToLayer: pointtolayer
 		});
 		map.addLayer(geojsonLayer);
 
 		map.on('zoomend', function() { refreshoverlay(map, geojsonLayer); });
 		map.on('dragend', function() { refreshoverlay(map, geojsonLayer); });
+
+		updatemeta();
 
 		/*
 		 * If user did not supply a center and the database has a center
