@@ -100,9 +100,9 @@ function renderheader() {
 function updatemeta(data) {
 	view.meta=data.properties.meta;
 	view.featuresloaded=data.features.length;
-	view.featuresmax=1000;
+	view.maxfeatures=1000;
 	if (view.layer.maxfeatures) {
-		view.featuresmax=view.layer.maxfeatures
+		view.maxfeatures=view.layer.maxfeatures
 	}
 
 	renderheader();
@@ -208,7 +208,7 @@ function geojsonLayerInit(map, dbname, layername) {
 function map_init(dbname, layername) {
 	var map=L.map('map');
 
-	var colourlayer=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	var colourlayer=L.tileLayer('https://osm.zz.de/tiles/mapnik/{z}/{x}/{y}.png', {
 		maxZoom: 18,
 		attribution: 'Map data © <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
 		id: 'colour'
