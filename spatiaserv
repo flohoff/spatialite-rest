@@ -162,7 +162,7 @@ sub row_to_geojson_feature {
 	my $new={ "geometry" => $geojson, "type" => "Feature" };
 
 	# Copy all columns except the geometry to the feature properties
-	my @keys=grep { !/geometry/ && !/geojson/ } keys %{$row};
+	my @keys=grep { !/geometry/ && !/geojson/ && defined($_) } keys %{$row};
 
 	foreach my $column ( @keys ) {
 		$new->{properties}{$column}=$row->{$column};
@@ -198,7 +198,7 @@ helper bbox => sub {
 	}
 
 	my $layer=$meta->{layer}{$layername};
-	my $columns=join(",", @{$layer->{columns}});
+	my $columns=join(",", grep { defined($_) } @{$layer->{columns}});
 
 	my @geometrycolumns;
 	if (defined($layer->{geometrycolumns})) {
@@ -227,6 +227,13 @@ helper bbox => sub {
 					%s
 				from	%s
 				where	ST_Intersects(%s, BuildMbr(%s,%s,%s,%s,4326))
+				and ROWID IN ( 
+					select ROWID
+					from SpatialIndex
+					where f_table_name = '%s'
+					and f_geometry_column = '%s'
+					and search_frame = BuildMBR(%s,%s,%s,%s,4326)
+				)
 				limit	%s",
 				$geometrycolumn, $simplify,
 				$geometrycolumn,
@@ -235,6 +242,9 @@ helper bbox => sub {
 				$geometrycolumn,
 				defined($stylecolumn) ? sprintf("%s as style,", $stylecolumn) : "",
 				$columns,
+				$layername,
+				$geometrycolumn,
+				sprintf("%f", $x1), sprintf("%f", $y1), sprintf("%f", $x2), sprintf("%f", $y2),
 				$layername,
 				$geometrycolumn,
 				sprintf("%f", $x1), sprintf("%f", $y1), sprintf("%f", $x2), sprintf("%f", $y2),
